@@ -99,12 +99,27 @@
             display: flex; flex-direction: column; overflow-y: auto; border: 1px solid #dee2e6;
         }
 
+        /* FIXED: Full width paragraph container for reading sections */
+        .passage-box {
+            width: 100%;
+            background: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            border-left: 6px solid #2a5298;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: #2c3e50;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+        }
+
         .option { 
             display: flex; align-items: center; gap: 12px; background: #f8f9fa; 
             padding: 14px 18px; border-radius: 12px; border: 1px solid #dfe6ef; 
             cursor: pointer; margin-bottom: 10px; transition: 0.2s;
         }
-        .option:hover { background: #eef2f7; }
+        .option:hover { background: #eef2f7; border-color: #2a5298; }
         .option input { width: auto; margin-right: 10px; }
 
         .grid-navigation { 
@@ -234,6 +249,8 @@
             
             <div id="sectionLabel" style="font-size: 0.85rem; color: #e67e22; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;"></div>
             
+            <div id="passageContainer" class="passage-box" style="display: none;"></div>
+
             <div id="questionText" style="font-size: 1.15rem; line-height: 1.5; margin-bottom: 25px; padding: 20px; background: #f9fbff; border-left: 5px solid #2a5298; border-radius: 0 10px 10px 0;"></div>
             
             <div id="optionsContainer"></div>
@@ -257,6 +274,10 @@
     // --- Data Management ---
     const SHEETDB_URL = "https://sheetdb.io/api/v1/orqwwy1abhzhg";
 
+    // Reusable Paragraph Data for Reading Comprehension
+    const readingPassage1 = `Artificial Intelligence (AI) has evolved from a <strong>speculative</strong> concept into a transformative force shaping modern society. Its applications extend beyond automation, influencing decision-making processes in fields such as healthcare, education, and governance. While proponents argue that AI enhances efficiency and innovation, critics caution against its ethical implications, particularly regarding data privacy, <strong>algorithmic bias</strong>, and the <strong>displacement of human labor</strong>. The rapid integration of AI systems raises questions about accountability, as decisions once made by humans are increasingly <strong>delegated</strong> to machines. Moreover, the unequal distribution of AI technologies between developed and developing regions risks widening existing socio-economic disparities. Therefore, the challenge lies not in halting technological progress, but in establishing <strong>frameworks</strong> that ensure AI is deployed responsibly, equitably, and transparently.`;
+    const readingPassage2 = `While proponents of rapid urbanization frequently extol the virtues of economic agglomeration and the proliferation of modernized infrastructure, they often willfully <strong>obfuscate</strong> the insidious socio-ecological ramifications that invariably accompany such unbridled expansion. In many developing nations, the <strong>ostensibly triumphant march towards metropolitan modernization</strong> masks a grim reality: the systematic marginalization of agrarian communities displaced by encroaching concrete jungles. This displacement not only precipitates a precipitous decline in localized food sovereignty but also engenders sprawling, hyper-dense squatter settlements where municipal amenities are egregiously scarce. Consequently, the celebrated economic dividends of the burgeoning megacity are disproportionately siphoned off by an <strong>entrenched elite</strong>, leaving the newly urbanized proletariat to grapple with systemic disenfranchisement, environmental degradation, and a profound erosion of their traditional socio-cultural fabric, rendering the true cost of this supposed "progress" morally fraught and economically precarious for the majority. `;
+    
     const QUESTIONS = [
         { id: 1, section: "Section One: Grammar", text: "She gave __________ all the money to the poor and the needy.", options: ["out", "in", "through", "away"], correct: 3 },
         { id: 2, section: "Section One: Grammar", text: "You can hardly avoid __________ her if you both working in the same office.", options: ["to meet", "meet", "for meeting", "meeting"], correct: 3 },
@@ -294,32 +315,32 @@
         { id: 34, section: "Section One: Grammar", text: "'I was studying at the high school in 1980,' she said. When we report this:", options: ["She said that I was studying at high school in 1980.", "She said that she has been studying at high school in 1980.", "She said that she had studied at high school in 1980.", "She said that she had been studying at high school in 1980."], correct: 3 },
         { id: 35, section: "Section One: Grammar", text: "That is the man __________ I gave the book.", options: ["who", "to whom", "which", "whose"], correct: 1 },
         { id: 36, section: "Section One: Grammar", text: "She hardly speak English; __________?", options: ["has she", "doesn't she", "can't she", "does she"], correct: 3 },
-        { id: 37, section: "Section Two: Reading Comprehension", text: "The reviewer starts with the symbol of a city map in order to illustrate:", options: ["The difficulty in understanding complexity.", "The degree to which the internet changes.", "The difference between potential and real use.", "The importance of the internet today."], correct: 2 },
-        { id: 38, section: "Section Two: Reading Comprehension", text: "What do the words 'that test' (line 13) refer to?", options: ["providing widespread access", "connecting with other cultures", "establishing principles", "accepting differences"], correct: 1 },
-        { id: 39, section: "Section Two: Reading Comprehension", text: "What point is made about the internet in the third paragraph?", options: ["People struggle to find things.", "It influences family relations.", "Users are responsible for evolution.", "The way it works is far from neutral."], correct: 3 },
-        { id: 40, section: "Section Two: Reading Comprehension", text: "What does the reviewer suggest about Zuckerman in the fifth paragraph?", options: ["Recommendations less impressive than analysis.", "Uses terms harder than need be.", "Has the same failings as others.", "Account is too negative."], correct: 0 },
-        { id: 41, section: "Section Two: Reading Comprehension", text: "Which word suggests disapproval (paragraph 6)?", options: ["rounds", "contraption", "stuff", "sniff"], correct: 3 },
-        { id: 42, section: "Section Two: Reading Comprehension", text: "What does the reviewer suggest about Aleks Krotoski in the final paragraph?", options: ["Insight into online friendship is perceptive.", "Influenced by Ethan Zuckerman.", "Misled by academic credentials.", "Takes on too many roles."], correct: 0 },
-        { id: 43, section: "Section Two: Reading Comprehension", text: "The word ‘adage’ (paragraph 3) means:", options: ["Tool", "Gadget", "Age", "Saying"], correct: 3 },
-        { id: 44, section: "Section Two: Reading Comprehension", text: "The phrase ‘far-flung’ (paragraph 2) refers to:", options: ["Remote", "Close", "Sampled", "Unknown"], correct: 0 },
-        { id: 45, section: "Section Two: Reading Comprehension", text: "Which is a possible topic for the passage?", options: ["Rewire", "Untangling the Web", "The Internet Today", "The web"], correct: 3 },
-        { id: 46, section: "Section Two: Reading Comprehension", text: "Which technology enables us to escape filters that limit search systems?", options: ["transparent translation", "bridge figures", "engineered serendipity", "contemplating solution"], correct: 2 },
-        { id: 47, section: "Section Two: Reading Comprehension", text: "Which statement expresses the MAIN point of the editorial 'WE CAN STILL DRIVE 55'?", options: ["New cars are faster and safer.", "Raising the limit to 65 mph is wrong.", "Excessive speed causes accidents.", "Driving the Turnpike is dangerous."], correct: 1 },
-        { id: 48, section: "Section Two: Reading Comprehension", text: "Which policy would the writer MOST LIKELY support?", options: ["Restricting driver access.", "Reducing police cars.", "Increasing fines for speeding.", "Making airbags mandatory."], correct: 2 },
-        { id: 49, section: "Section Two: Reading Comprehension", text: "In paragraph 3, why does the writer repeat the word 'despite'?", options: ["To emphasize the word.", "To contrast opponent arguments.", "To show agreement.", "To contradict his own points."], correct: 1 },
-        { id: 50, section: "Section Two: Reading Comprehension", text: "In the second paragraph, what strategy does the writer use?", options: ["Cites car safety.", "Supports fast society.", "Lists safety features.", "Presents opponent reasons."], correct: 3 },
-        { id: 51, section: "Section Two: Reading Comprehension", text: "Which is an example of a 'self-defeating' action?", options: ["Refusing to ask for directions.", "Learning a language.", "Forgiving a friend.", "Organizing a day care."], correct: 0 },
-        { id: 52, section: "Section Three: Substitution", text: "Psychiatrist should be **patient** while they are on their work.", options: ["sick", "giant", "elegant", "tolerant"], correct: 3 },
-        { id: 53, section: "Section Three: Substitution", text: "I was **sick as a dog** last night.", options: ["very sick", "being angry", "a bit sick", "being furious"], correct: 0 },
-        { id: 54, section: "Section Three: Substitution", text: "We **abrogated** our agreement last week.", options: ["signed", "to put an end to", "approved", "announced"], correct: 1 },
-        { id: 55, section: "Section Three: Substitution", text: "This antique watch **changed hands** several times.", options: ["repaired", "worn", "sold", "bought"], correct: 2 },
-        { id: 56, section: "Section Three: Substitution", text: "She **fell out** with her boyfriend over where to go.", options: ["argue", "discussed", "agreed", "decided"], correct: 0 },
-        { id: 57, section: "Section Three: Substitution", text: "I like to have a **cat nap**.", options: ["a long sleep", "sleep well", "a short sleep", "a dream"], correct: 2 },
-        { id: 58, section: "Section Three: Substitution", text: "He decided to go **although** I begged him not to.", options: ["despite", "while", "in spite of the fact that", "in spite of"], correct: 2 },
-        { id: 59, section: "Section Three: Substitution", text: "Abeba and Almaz **get on like a house on a fire**.", options: ["argue with each other", "like each other very much", "shouted at each other", "spoiled friendship"], correct: 1 },
-        { id: 60, section: "Section Three: Substitution", text: "One of my ears went **septic**.", options: ["infected", "affects", "antibiotic", "antiseptics"], correct: 0 },
-        { id: 61, section: "Section Three: Substitution", text: "Suddenly, a **stentorian** voice boomed across the room.", options: ["graceful", "thunderous", "gracious", "wondrous"], correct: 1 },
-        { id: 62, section: "Section Three: Substitution", text: "We don’t **get out** much these days.", options: ["say something", "become known", "have enjoyable time", "leave a place"], correct: 2 },
+        { id: 37, section: "Section Two: Reading Comprehension", passage: readingPassage1, text: "What is the main idea of the passage?", options: ["The history of Artificial Intelligence","The benefits of automation","The impact and challenges of Artificial Intelligence","The development of healthcare systems"], correct: 2 },
+        { id: 38, section: "Section Two: Reading Comprehension", passage: readingPassage1, text: "The word \"speculative\" most nearly means:" , options: ["Practical","Imaginary","Certain","Proven"], correct: 1 },
+        { id: 39, section: "Section Two: Reading Comprehension", passage: readingPassage1, text: "The phrase \"algorithmic bias\" refers to:", options: ["Unfair outcomes produced by AI systems", "Slow processing speed", "Human emotions in machines", "Errors caused by hardware"], correct: 0 },
+        { id: 40, section: "Section Two: Reading Comprehension", passage: readingPassage1, text: "The word \"delegated\" is closest in meaning to:", options: ["Removed", "Assigned", "Rejected", "Ignored"], correct: 1 },
+        { id: 41, section: "Section Two: Reading Comprehension", passage: readingPassage1, text: "The passage suggests that AI may increase inequality by:", options: ["Reducing education", "Limiting innovation", "Widening socio-economic gaps", "Decreasing population growth"], correct: 2 },
+        { id: 42, section: "Section Two: Reading Comprehension", passage: readingPassage1, text: "The tone of the passage is best described as:", options: ["Enthusiastic and emotional", "Neutral and analytical", "Humorous and informal", "Angry and critical"], correct: 1 },
+        { id: 43, section: "Section Two: Reading Comprehension", passage: readingPassage1, text: "The word \"frameworks\" most nearly means:", options: ["Machines", "Rules or systems", "Buildings", "Theories only"], correct: 1 },
+        { id: 44, section: "Section Two: Reading Comprehension", passage: readingPassage1, text: "What is implied about developing regions?", options: ["They may lag behind in AI access", "They fully benefit from AI equally", "They control AI development", "They reject technology"], correct: 0 },
+        { id: 45, section: "Section Two: Reading Comprehension", passage: readingPassage2, text: "Which of the following best captures the author's primary argument regarding rapid urbanization?", options: ["It is a necessary, albeit painful, transition required to achieve global economic competitiveness in developing nations.", "It primarily fails because displaced agrarian communities stubbornly refuse to adapt to modern municipal systems.", "Its celebrated economic benefits are superficial and largely overshadowed by the exploitation and disenfranchisement of vulnerable populations.", "It is an unequivocal triumph of modernization that is unfortunately misunderstood by traditional, rural societies"], correct: 2 },
+        { id: 46, section: "Section Two: Reading Comprehension", passage: readingPassage2, text: "As used in the first sentence, the word \"obfuscate\" most nearly means:", options: ["to physically dismantle or destroy", "to passionately advocate for and promote", "to deliberately conceal or make unclear", "to scientifically measure and analyze"], correct: 2 },
+        { id: 47, section: "Section Two: Reading Comprehension", passage: readingPassage2, text: "It can be reasonably inferred from the passage that the \"entrenched elite\":", options: ["bear the heaviest burden of environmental degradation found within the new megacities.", "are the original inhabitants of the agrarian communities before urban displacement occurred", "actively lobby for the expansion of public municipal amenities in squatter settlements.", "are the primary beneficiaries of the wealth generated by the city's economic expansion."], correct: 3 },
+        { id: 48, section: "Section Two: Reading Comprehension", passage: readingPassage2, text: "The author's tone toward the \"ostensibly triumphant march towards metropolitan modernization\" can best be described as:", options: ["Enthusiastically supportive", "Objective and strictly analytical", "Cynical and highly critical", "Mildly optimistic and hopeful"], correct: 2 },
+        { id: 49, section: "Section Two: Reading Comprehension", passage: readingPassage2, text: "According to the passage, what is a direct consequence of the displacement of agrarian communities?", options: ["The immediate dismantling of the power held by the entrenched elite.", "A severe reduction in a region's ability to independently sustain its own food supply.", "An overabundance of municipal amenities in newly formed urban centers.", "The seamless integration of the rural proletariat into the modernized technological workforce."], correct: 1 },
+        { id: 50, section: "Section Three: Substitution", text: "Psychiatrist should be \"patient\" while they are on their work.", options: ["sick", "giant", "elegant", "tolerant"], correct: 3 },
+        { id: 51, section: "Section Three: Substitution", text: "I was \"sick as a dog\" last night.", options: ["very sick", "being angry", "a bit sick", "being furious"], correct: 0 },
+        { id: 52, section: "Section Three: Substitution", text: "We \"abrogated\" our agreement last week.", options: ["signed", "to put an end to", "approved", "announced"], correct: 1 },
+        { id: 53, section: "Section Three: Substitution", text: "This antique watch \"changed hands\" several times.", options: ["repaired", "worn", "sold", "bought"], correct: 2 },
+        { id: 54, section: "Section Three: Substitution", text: "She \"fell out\" with her boyfriend over where to go.", options: ["argue", "discussed", "agreed", "decided"], correct: 0 },
+        { id: 55, section: "Section Three: Substitution", text: "I like to have a \"cat nap\".", options: ["a long sleep", "sleep well", "a short sleep", "a dream"], correct: 2 },
+        { id: 56, section: "Section Three: Substitution", text: "He decided to go \"although\" I begged him not to.", options: ["despite", "while", "in spite of the fact that", "in spite of"], correct: 2 },
+        { id: 57, section: "Section Three: Substitution", text: "Abeba and Almaz \"get on like a house on a fire\".", options: ["argue with each other", "like each other very much", "shouted at each other", "spoiled friendship"], correct: 1 },
+        { id: 58, section: "Section Three: Substitution", text: "One of my ears went \"septic\".", options: ["infected", "affects", "antibiotic", "antiseptics"], correct: 0 },
+        { id: 59, section: "Section Three: Substitution", text: "Suddenly, a \"stentorian\" voice boomed across the room.", options: ["graceful", "thunderous", "gracious", "wondrous"], correct: 1 },
+        { id: 60, section: "Section Three: Substitution", text: "We don’t \"get out\" much these days.", options: ["say something", "become known", "have enjoyable time", "leave a place"], correct: 2 },
+        { id: 61, section: "Section Four: Vocabulary", text: "The instructions given by the manager were so ________ that the team didn't know whether to start the project immediately or wait for further approval.", options: ["meticulous", "ambiguous", "redundant", "coherent"], correct: 1 },
+        { id: 62, section: "Section Four: Vocabulary", text: "Because the community center's roof had not been repaired or maintained in over forty years, its eventual collapse during the heavy storm was entirely ________.", options: ["preventable", "spontaneous", "inevitable", "improbable"], correct: 2 },
         { id: 63, section: "Section Four: Vocabulary", text: "Excessive dosages can be __________.", options: ["healthy", "expensive", "toxic", "wasteful"], correct: 2 },
         { id: 64, section: "Section Four: Vocabulary", text: "Much communication is implicit, in __________, expressive movements.", options: ["exposes", "verbalization", "gestures", "cognitions"], correct: 2 },
         { id: 65, section: "Section Four: Vocabulary", text: "By virtue of her __________ of practical knowledge, she was __________ by her family.", options: ["store/Condemned", "supply/dismissed", "wealth/regarded", "modicum/abandoned"], correct: 2 },
@@ -327,7 +348,7 @@
         { id: 67, section: "Section Four: Vocabulary", text: "The topic was __________, but the droning voice had a __________ effect.", options: ["interesting/rousing", "advantageous/beneficial", "rudimentary/reassuring", "stimulating/soporific"], correct: 3 },
         { id: 68, section: "Section Four: Vocabulary", text: "Kemal had the gift of sharing his __________ his subject and making the excitement __________.", options: ["Passion for/contagious", "Knowledge for/inaudible", "contempt for/praise worthy", "propensity for/futile"], correct: 0 },
         { id: 69, section: "Section Four: Vocabulary", text: "The book is on the wrong shelf. It is __________.", options: ["misplaced", "unplaced", "displaced", "replaced"], correct: 0 },
-        { id: 70, section: "Section Four: Vocabulary", text: "The students are all **geared up** to write. This means:", options: ["ready", "motivated", "silent", "keen"], correct: 0 },
+        { id: 70, section: "Section Four: Vocabulary", text: "The students are all \"geared up\" to write. This means:", options: ["ready", "motivated", "silent", "keen"], correct: 0 },
         { id: 71, section: "Section Four: Vocabulary", text: "My mother is __________ if I get home late.", options: ["anxiety", "anxieties", "anxious", "anxiously"], correct: 2 },
         { id: 72, section: "Section Four: Vocabulary", text: "The argument between South Sudan and Sudan Republic has __________.", options: ["dispute", "collapsed", "co-operated", "equipped"], correct: 1 },
         { id: 73, section: "Section Five: Word Order", text: "appropriate author’s to his style the is hardly audience.", options: ["The hardly author’s style is appropriate.", "The author’s style is hardly appropriate.", "The audience style is appropriate hardly.", "The audience style is hardly appropriate."], correct: 1 },
@@ -391,6 +412,16 @@
         const q = QUESTIONS[currentQIndex];
         document.getElementById('questionNumberLabel').innerText = `Question ${currentQIndex + 1} of ${TOTAL_QS}`;
         document.getElementById('sectionLabel').innerText = q.section || "";
+        
+        // FIXED: Conditional check to show or hide paragraph fully
+        const passBox = document.getElementById('passageContainer');
+        if (q.passage) {
+            passBox.innerHTML = `<strong>Paragraph/Passage:</strong><br>${q.passage}`;
+            passBox.style.display = 'block';
+        } else {
+            passBox.style.display = 'none';
+        }
+
         document.getElementById('questionText').innerText = q.text;
         
         const container = document.getElementById('optionsContainer');
